@@ -454,6 +454,275 @@ paths:
 
         401:
           $ref: '#/components/responses/Unauthorized'
+          
+          
+  /skipped_expired_assignments:
+    put:
+      description: Submit all skipped and expired assignments.
+
+      security:
+        - IDToken: []
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MicrotaskAssignment'
+
+      responses:
+        200:
+          description: Successfully received all skipped/expired assignments.
+            Returns the IDs of all the received assignments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+        400:
+          description: Invalid or an empty request.
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
+          
+  # THIS PATH IS NOWHERE USED
+  /skipped_assignments:
+    put:
+      description: Submit all skipped assignments.
+
+      security:
+        - IDToken: []
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MicrotaskAssignment'
+
+      responses:
+        200:
+          description: Successfully received all skipped/expired assignments.
+            Returns the IDs of all the received assignments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+        400:
+          description: Invalid or an empty request.
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
+          
+  /renew_id_token:
+    put:
+      description: Get new id_token.
+
+      security:
+        - IDToken: []
+
+      responses:
+        200:
+          description: Newly generated id_token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_token:
+                    type: string
+
+        400:
+          description: Invalid or an empty request.
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
+          
+  /payments/accounts:
+    post:
+      description: Add new payment account to the requested user.
+
+      security:
+        - IDToken: []
+        
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentAccountRequest'
+
+      responses:
+        200:
+          description: Successfully received all skipped/expired assignments.
+            Returns the IDs of all the received assignments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentInfoResponse'
+
+        400:
+          description: Request body is not valid.
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
+  /payments/accounts/{id}/verify:
+    put:
+      description: Verify an account using a 2 rupees transaction.
+
+      security:
+        - IDToken: []
+        
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentVerifyRequest'
+                
+      
+      # header pr security?
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: required id token for authentication
+
+      responses:
+        200:
+          description: Successfully received all skipped/expired assignments.
+            Returns the IDs of all the received assignments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentInfoResponse'
+
+        400:
+          description: Missing field in body - confirm, Account Id is not valid, Account Id is not associated with the worker, Provided account id has the status *(account need to to be verified), 
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
+          
+  /payments/accounts/current:
+    get:
+      description: Return lastest account with the worker_id.
+
+      security:
+        - IDToken: []
+
+      responses:
+        200:
+          description: Successfully received all skipped/expired assignments.
+            Returns the IDs of all the received assignments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentInfoResponse'
+
+        400:
+          description: Invalid or an empty request.
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
+          
+  /payments/transaction:
+    get:
+      description: Get transaction records for a user from time.
+
+      security:
+        - IDToken: []
+      
+      # header pr security?
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: string
+          required: true
+          description: time
+
+      responses:
+        200:
+          description: Successfully received all transaction
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/PaymentInfoResponse'
+
+        400:
+          description: Missing or invalid from time.
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
+  
+  # THIS PATH IS NOWHERE USED
+  /payments/worker/{id}/balance:
+    get:
+      description: Submit all skipped assignments.
+
+      security:
+        - IDToken: []
+      
+      # header pr security?
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: required id token for authentication
+
+      responses:
+        200:
+          description: Successfully received all skipped/expired assignments.
+            Returns the IDs of all the received assignments.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  worker_balance:
+                    type: number
+                  total_spent:
+                    type: number
+
+        400:
+          description: Invalid or an empty request.
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
+          
+  /payments/worker/earnings:
+    get:
+      description: Submit all skipped assignments.
+
+      security:
+        - IDToken: []
+
+      responses:
+        200:
+          description: Successfully received all skipped/expired assignments.
+            Returns the IDs of all the received assignments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkerEarningsResponse'
+
+        400:
+          description: Invalid or an empty request.
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
 
 components:
   schemas:
@@ -606,6 +875,65 @@ components:
           type: string
         last_updated_at:
           type: string
+          
+    PaymentAccountRequest:
+      type: object
+      properties:
+        account:
+          $ref: '#/components/schemas/PaymentAccount'
+        name:
+          type: string
+        type:
+          type: string
+          
+    PaymentInfoResponse:
+      type: object
+      properties:
+        account_type:
+          type: string
+        active:
+          type: boolean
+        fund_id:
+          type: string
+        id:
+          type: string
+        meta:
+         $ref: '#/components/schemas/PaymentMeta'
+        status:
+          type: string
+    
+    PaymentMeta:
+      type: object
+      properties:
+        account:
+          $ref: '#/components/schemas/PaymentAccount'
+        name:
+          type: string
+          
+    PaymentAccount:
+      type: object
+      properties:
+      # is id account_number or what?
+        id:
+          type: string
+        ifsc:
+          type: string
+          
+    PaymentVerifyRequest:
+      type: object
+      properties:
+        confirm:
+          type: boolean
+          
+    WorkerEarningsResponse:
+      type: object
+      properties:
+        total_paid:
+          type: number
+        week_earned:
+          type: number
+        total_earned:
+          type: number
 
   securitySchemes:
     AccessCode:
@@ -627,3 +955,4 @@ components:
   responses:
     Unauthorized:
       description: Missing or invalid authentication information
+      
