@@ -11,6 +11,7 @@ export const karyaTableNames = [
   'server_user',
   'box',
   'worker',
+  'avatar',
   'karya_file',
   'task',
   'microtask_group',
@@ -95,11 +96,20 @@ const karyaDb: DatabaseSpec<KaryaTableName, KaryaString, KaryaObject> = {
       ],
     },
 
-    worker: {
+    avatar: {
       columns: [
         ['access_code', ['string', 32], 'unique', 'not nullable', 'not mutable'],
-        ['registered_at', ['timestamp', 'eon'], 'not unique', 'not nullable', 'mutable'],
+        ['worker_id', ['>', 'worker'], 'unique', 'not nullable', 'not mutable'],
+        ['wgroup', ['string', 64], 'not unique', 'nullable', 'mutable'],
+        ['tags', ['stringarray'], 'not unique', 'not nullable', 'mutable'],
+        ['tags_updated_at', ['timestamp', 'now'], 'not unique', 'not nullable', 'mutable'],
+      ],
+    },
+
+    worker: {
+      columns: [
         ['reg_mechanism', ['string', 32, 'RegistrationMechanism'], 'not unique', 'nullable', 'mutable'],
+        ['registered_at', ['timestamp', 'eon'], 'not unique', 'not nullable', 'mutable'],
         ['phone_number', ['string', 16], 'not unique', 'nullable', 'mutable'],
         ['otp', ['string', 8], 'not unique', 'nullable', 'mutable'],
         ['otp_generated_at', ['stringarray'], 'not unique', 'nullable', 'mutable'],
@@ -111,9 +121,6 @@ const karyaDb: DatabaseSpec<KaryaTableName, KaryaString, KaryaObject> = {
         ['language', ['string', 8, 'LanguageCode'], 'not unique', 'nullable', 'mutable'],
         ['profile', ['object'], 'not unique', 'nullable', 'mutable'],
         ['profile_updated_at', ['timestamp', 'now'], 'not unique', 'not nullable', 'mutable'],
-        ['wgroup', ['string', 64], 'not unique', 'nullable', 'mutable'],
-        ['tags', ['stringarray'], 'not unique', 'not nullable', 'mutable'],
-        ['tags_updated_at', ['timestamp', 'now'], 'not unique', 'not nullable', 'mutable'],
         ['sent_to_server_at', ['timestamp', 'eon'], 'not unique', 'not nullable', 'mutable'],
         ['selected_account', ['>', 'payments_account'], 'unique', 'nullable', 'mutable'],
         ['payments_active', ['boolean', true], 'not unique', 'not nullable', 'mutable'],
@@ -371,6 +378,7 @@ const boxSideServerIdFields: TableColumnSpec<KaryaTableName, KaryaString, KaryaO
 // Box tables - Tables for which the box can also create records
 const boxTables: KaryaTableName[] = [
   'worker',
+  'avatar',
   'microtask_group_assignment',
   'microtask_assignment',
   'payments_account',
