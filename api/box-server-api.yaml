@@ -11,6 +11,170 @@ servers:
   - url: '/api/v1'
 
 paths:
+  /auth/is_registered:
+    get:
+      description: Checks if a phone number is registered or not?
+
+      parameters:
+        - name: phone-number
+          schema: { type: string }
+          in: header
+          required: true
+    
+      responses:
+        200:
+          description: User information of the registered user.
+          content:
+            application/json:
+             schema:
+                type: object
+                description: Response if id token is used for auth
+                properties:
+                  name:
+                    type: string
+                  gender:
+                    type: string
+                
+        404:
+          description: User not regisered, phone number cannot be found.
+
+  /auth/register:
+    post:
+      description: Checks if a phone number is registered or not? If registered, returns user data else
+        response 404. When a user is not found, we can ask them to signup using an access-code and get an otp on 
+        their phone.
+
+      parameters:
+        - name: phone-number
+          schema: { type: string }
+          in: header
+          required: true
+
+      security:
+        - AccessCode: []
+    
+      responses:
+        200:
+          description: User information of the registered user.
+          content:
+            application/json:
+             schema:
+                type: object
+                description: Response if id token is used for auth
+                properties:
+                  phone-number:
+                    type: string
+                  access_code:
+                    type: string
+                
+        404:
+          description: User not regisered, phone number cannot be found.
+
+  /auth/otp/generate:
+    put:
+      description: Generate a new OTP for a worker.
+
+      parameters:
+        - name: phone-number
+          in: header
+          required: true
+          schema: { type: string }
+
+      security:
+        - AccessCode: []
+        - IDToken: []
+
+      responses:
+        200:
+          description: Successfully generated and sent OTP.
+
+        400:
+          description: Missing phone number in header
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
+        403:
+          description: Access code is already used by another phone number.
+
+        429:
+          description: Request rate for sending OTP exceeded. Rate will be
+            by the server.
+
+        503:
+          description: Unable to send OTP. Or OTP service currently unavailable.
+
+  /auth/otp/resend:
+    put:
+      description: Resend OTP previously generated.
+
+      parameters:
+        - name: phone-number
+          in: header
+          required: true
+          schema: { type: string }
+
+      security:
+        - AccessCode: []
+        - IDToken: []
+
+      responses:
+        200:
+          description: Successfully resent OTP.
+
+        400:
+          description: Missing phone number. OTP was never sent for this record.
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
+        403:
+          description: Access code is already used by another phone number.
+
+        429:
+          description: OTP already resent once.
+
+        503:
+          description: Unable to send OTP. Or OTP service currently unavailable.
+
+  /auth/otp/verify:
+    put:
+      description: Verify the OTP sent for the worker.
+
+      parameters:
+        - name: phone-number
+          in: header
+          required: true
+          schema: { type: string }
+        - name: otp
+          in: header
+          required: true
+          schema: { type: string }
+
+      security:
+        - AccessCode: []
+        - IDToken: []
+
+      responses:
+        200:
+          description: OTP successfully verified.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Worker'
+
+        400:
+          description: Missing phone number / OTP.
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
+        403:
+          description: Access code is already used by another phone number.
+
+        408:
+          description: Time limit exceeded before the verify request was sent.
+
   /worker:
     get:
       description: Get a worker record. The worker can identify themselves using
@@ -100,111 +264,21 @@ paths:
 
         401:
           $ref: '#/components/responses/Unauthorized'
-
-  /worker/otp/generate:
+          
+  /worker/assign_code:
+    description: Add the user to requested access code 
     put:
-      description: Generate a new OTP for a worker.
-
+      description: Add the user to requested access code
+      security:
+        - IdToken: []
       parameters:
-        - name: phone-number
+        - name: access-code
           in: header
           required: true
           schema: { type: string }
-
-      security:
-        - AccessCode: []
-        - IDToken: []
-
       responses:
         200:
-          description: Successfully generated and sent OTP.
-
-        400:
-          description: Missing phone number in header
-
-        401:
-          $ref: '#/components/responses/Unauthorized'
-
-        403:
-          description: Access code is already used by another phone number.
-
-        429:
-          description: Request rate for sending OTP exceeded. Rate will be
-            by the server.
-
-        503:
-          description: Unable to send OTP. Or OTP service currently unavailable.
-
-  /worker/otp/resend:
-    put:
-      description: Resend OTP previously generated.
-
-      parameters:
-        - name: phone-number
-          in: header
-          required: true
-          schema: { type: string }
-
-      security:
-        - AccessCode: []
-        - IDToken: []
-
-      responses:
-        200:
-          description: Successfully resent OTP.
-
-        400:
-          description: Missing phone number. OTP was never sent for this record.
-
-        401:
-          $ref: '#/components/responses/Unauthorized'
-
-        403:
-          description: Access code is already used by another phone number.
-
-        429:
-          description: OTP already resent once.
-
-        503:
-          description: Unable to send OTP. Or OTP service currently unavailable.
-
-  /worker/otp/verify:
-    put:
-      description: Verify the OTP sent for the worker.
-
-      parameters:
-        - name: phone-number
-          in: header
-          required: true
-          schema: { type: string }
-        - name: otp
-          in: header
-          required: true
-          schema: { type: string }
-
-      security:
-        - AccessCode: []
-        - IDToken: []
-
-      responses:
-        200:
-          description: OTP successfully verified.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Worker'
-
-        400:
-          description: Missing phone number / OTP.
-
-        401:
-          $ref: '#/components/responses/Unauthorized'
-
-        403:
-          description: Access code is already used by another phone number.
-
-        408:
-          description: Time limit exceeded before the verify request was sent.
+          description: ""
 
   /language_assets/{code}:
     get:
@@ -454,8 +528,7 @@ paths:
 
         401:
           $ref: '#/components/responses/Unauthorized'
-          
-          
+               
   /skipped_expired_assignments:
     put:
       description: Submit all skipped and expired assignments.
@@ -729,9 +802,7 @@ components:
     Worker:
       type: object
       properties:
-        id:
-          type: string
-        access_code:
+        worker_id:
           type: string
         reg_mechanism:
           type: string
@@ -749,8 +820,6 @@ components:
           type: string
         language:
           type: string
-        tags:
-          type: object
         created_at:
           type: string
         last_updated_at:
@@ -955,4 +1024,3 @@ components:
   responses:
     Unauthorized:
       description: Missing or invalid authentication information
-      
