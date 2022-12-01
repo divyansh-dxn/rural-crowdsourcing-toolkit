@@ -201,7 +201,8 @@ paths:
         language associated with the corresponding worker record and if the
         worker has already been registered (used to determine the registration
         flow post OTP verification).
-
+      tags: 
+        - worker
       security:
         - AccessCode: []
         - IDToken: []
@@ -242,7 +243,8 @@ paths:
         The action query parameter describes if the request is a simple update
         of for registering the worker. For registration, year of birth and
         gender are required parameters.
-
+      tags: 
+        - worker
       parameters:
         - name: action
           description: Specifies the type of update. Can be 'register' or 'update'.
@@ -287,6 +289,8 @@ paths:
     description: Add the user to requested access code 
     put:
       description: Add the user to requested access code
+      tags: 
+        - worker
       security:
         - IdToken: []
       parameters:
@@ -302,7 +306,8 @@ paths:
     get:
       description: Get the file asset for the language with the specified code.
         The response will be a tar ball with all audio files.
-
+      tags: 
+        - language
       parameters:
         - name: code
           description: ISO 639-1 code for the language
@@ -335,7 +340,8 @@ paths:
   /assignment/{id}/input_file:
     get:
       description: Get the input file for a particular assignment.
-
+      tags: 
+        - assignment
       parameters:
         - name: id
           description: ID of the assignment
@@ -368,7 +374,8 @@ paths:
   /assignment/{id}/output_file:
     post:
       description: Submit the output file for a particular assignment.
-
+      tags: 
+        - assignment
       parameters:
         - name: id
           description: ID of the assignment
@@ -417,7 +424,8 @@ paths:
   /worker/log_file:
     post:
       description: Upload or replace a log file created for the current worker.
-
+      tags: 
+        - worker
       security:
         - IDToken: []
 
@@ -457,7 +465,8 @@ paths:
   /assignments:
     put:
       description: Submit all completed and skipped assignments.
-
+      tags: 
+        - assignment
       security:
         - IDToken: []
 
@@ -492,7 +501,8 @@ paths:
         response includes all the microtask records and the task information
         associated with the assignments. For verified assignments, the response
         only includes the relevant information from the list of assignments.
-
+      tags: 
+        - assignment
       parameters:
         - name: type
           description: Type of assignments to get (new or verified)
@@ -550,7 +560,8 @@ paths:
   /skipped_expired_assignments:
     put:
       description: Submit all skipped and expired assignments.
-
+      tags: 
+        - assignment
       security:
         - IDToken: []
 
@@ -583,7 +594,8 @@ paths:
   /skipped_assignments:
     put:
       description: Submit all skipped assignments.
-
+      tags: 
+        - assignment
       security:
         - IDToken: []
 
@@ -612,10 +624,11 @@ paths:
         401:
           $ref: '#/components/responses/Unauthorized'
           
-  /renew_id_token:
+  /auth/renew_id_token:
     put:
       description: Get new id_token.
-
+      tags: 
+        - auth
       security:
         - IDToken: []
 
@@ -639,7 +652,8 @@ paths:
   /payments/accounts:
     post:
       description: Add new payment account to the requested user.
-
+      tags: 
+        - payments
       security:
         - IDToken: []
         
@@ -667,7 +681,8 @@ paths:
   /payments/accounts/{id}/verify:
     put:
       description: Verify an account using a 2 rupees transaction.
-
+      tags: 
+        - payments
       security:
         - IDToken: []
         
@@ -705,7 +720,8 @@ paths:
   /payments/accounts/current:
     get:
       description: Return lastest account with the worker_id.
-
+      tags: 
+        - payments
       security:
         - IDToken: []
 
@@ -727,7 +743,8 @@ paths:
   /payments/transaction:
     get:
       description: Get transaction records for a user from time.
-
+      tags: 
+        - payments
       security:
         - IDToken: []
       
@@ -760,7 +777,8 @@ paths:
   /payments/worker/{id}/balance:
     get:
       description: Submit all skipped assignments.
-
+      tags: 
+        - payments
       security:
         - IDToken: []
       
@@ -796,7 +814,8 @@ paths:
   /payments/worker/earnings:
     get:
       description: Submit all skipped assignments.
-
+      tags: 
+        - payments
       security:
         - IDToken: []
 
