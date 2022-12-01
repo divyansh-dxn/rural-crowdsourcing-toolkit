@@ -11,78 +11,16 @@ servers:
   - url: '/api/v1'
 
 paths:
-  /auth/is_registered:
-    get:
-      description: Checks if a phone number is registered or not?
-
-      parameters:
-        - name: phone-number
-          schema: { type: string }
-          in: header
-          required: true
-    
-      responses:
-        200:
-          description: User information of the registered user.
-          content:
-            application/json:
-             schema:
-                type: object
-                description: Response if id token is used for auth
-                properties:
-                  name:
-                    type: string
-                  gender:
-                    type: string
-                
-        404:
-          description: User not regisered, phone number cannot be found.
-
-  /auth/register:
-    post:
-      description: Checks if a phone number is registered or not? If registered, returns user data else
-        response 404. When a user is not found, we can ask them to signup using an access-code and get an otp on 
-        their phone.
-
-      parameters:
-        - name: phone-number
-          schema: { type: string }
-          in: header
-          required: true
-
-      security:
-        - AccessCode: []
-    
-      responses:
-        200:
-          description: User information of the registered user.
-          content:
-            application/json:
-             schema:
-                type: object
-                description: Response if id token is used for auth
-                properties:
-                  phone-number:
-                    type: string
-                  access_code:
-                    type: string
-                
-        404:
-          description: User not regisered, phone number cannot be found.
-
   /auth/otp/generate:
     put:
       description: Generate a new OTP for a worker.
-
+      tags: 
+        - auth
       parameters:
         - name: phone-number
           in: header
           required: true
           schema: { type: string }
-
-      security:
-        - AccessCode: []
-        - IDToken: []
 
       responses:
         200:
@@ -107,16 +45,13 @@ paths:
   /auth/otp/resend:
     put:
       description: Resend OTP previously generated.
-
+      tags: 
+        - auth
       parameters:
         - name: phone-number
           in: header
           required: true
           schema: { type: string }
-
-      security:
-        - AccessCode: []
-        - IDToken: []
 
       responses:
         200:
@@ -139,8 +74,10 @@ paths:
 
   /auth/otp/verify:
     put:
-      description: Verify the OTP sent for the worker.
-
+      description: Verify the OTP sent for the worker. On successful verification,  returns a list of user profiles
+        associated with the phone number
+      tags: 
+        - auth
       parameters:
         - name: phone-number
           in: header
@@ -150,18 +87,20 @@ paths:
           in: header
           required: true
           schema: { type: string }
-
-      security:
-        - AccessCode: []
-        - IDToken: []
-
       responses:
         200:
           description: OTP successfully verified.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Worker'
+                type: object
+                properties:
+                  karya-phone-token:
+                    type: string
+                  profiles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Worker'
 
         400:
           description: Missing phone number / OTP.
@@ -171,6 +110,85 @@ paths:
 
         403:
           description: Access code is already used by another phone number.
+
+        408:
+          description: Time limit exceeded before the verify request was sent.
+
+  /auth/profile/verify:
+    put:
+      description: Verify the OTP sent for the worker. On successful verification,  returns a list of user profiles
+        associated with the phone number
+      tags: 
+        - auth
+      security:
+        - PhoneToken: []
+      parameters:
+        - name: phone-number
+          in: header
+          required: true
+          schema: { type: string }
+        - name: worker-id
+          in: header
+          required: true
+          schema: { type: string }
+
+      responses:
+        200:
+          description: Phone number successfuly verified with a profile. Returns a karya-id-token
+            having phone-number and worker-id information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  karya-id-token:
+                    type: string
+                  profile:
+                      $ref: '#/components/schemas/Worker'
+
+        400:
+          description: Missing phone number / worker-id.
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
+        408:
+          description: Time limit exceeded before the verify request was sent.
+          
+  /auth/profile/create:
+    put:
+      description: Create a new worker profile after a phone number has been verified.
+      tags: 
+        - auth
+      security:
+        - PhoneToken: []
+      parameters:
+        - name: phone-number
+          in: header
+          required: true
+          schema: { type: string }
+        - name: access-code
+          in: header
+          required: true
+          schema: { type: string }
+
+      responses:
+        200:
+          description: Phone number successfuly verified with a profile. Returns a karya-id-token
+            having phone-number and worker-id information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  karya-id-token:
+                    type: string
+
+        400:
+          description: Missing phone number / worker-id.
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
 
         408:
           description: Time limit exceeded before the verify request was sent.
@@ -1017,9 +1035,16 @@ components:
     IDToken:
       type: apiKey
       description: ID token generated by the server upon successful verification
-        of the OTP.
+        of the profile. This proves the ownership of that user over a phone number.
       in: header
       name: karya-id-token
+
+    PhoneToken:
+      type: apiKey
+      description: ID token generated by the server upon successful verification
+        of the OTP.
+      in: header
+      name: karya-phone-token
 
   responses:
     Unauthorized:
