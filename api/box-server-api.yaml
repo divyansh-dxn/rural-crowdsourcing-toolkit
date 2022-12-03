@@ -93,14 +93,8 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  karya-phone-token:
-                    type: string
-                  profiles:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Worker'
+                $ref: '#/components/schemas/OtpVerifiedResponse'
+                      
 
         400:
           description: Missing phone number / OTP.
@@ -139,13 +133,8 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  karya-id-token:
-                    type: string
-                  profile:
-                      $ref: '#/components/schemas/Worker'
-
+               $ref: '#/components/schemas/ProfileVerifiedResponse'
+                 
         400:
           description: Missing phone number / worker-id.
 
@@ -179,10 +168,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  karya-id-token:
-                    type: string
+               $ref: '#/components/schemas/ProfileVerifiedResponse'
 
         400:
           description: Missing phone number / worker-id.
@@ -192,6 +178,31 @@ paths:
 
         408:
           description: Time limit exceeded before the verify request was sent.
+
+  /auth/renew_id_token:
+    put:
+      description: Get new id_token.
+      tags: 
+        - auth
+      security:
+        - IDToken: []
+
+      responses:
+        200:
+          description: Newly generated id_token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_token:
+                    type: string
+
+        400:
+          description: Invalid or an empty request.
+
+        401:
+          $ref: '#/components/responses/Unauthorized'
 
   /worker:
     get:
@@ -623,32 +634,7 @@ paths:
 
         401:
           $ref: '#/components/responses/Unauthorized'
-          
-  /auth/renew_id_token:
-    put:
-      description: Get new id_token.
-      tags: 
-        - auth
-      security:
-        - IDToken: []
-
-      responses:
-        200:
-          description: Newly generated id_token.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id_token:
-                    type: string
-
-        400:
-          description: Invalid or an empty request.
-
-        401:
-          $ref: '#/components/responses/Unauthorized'
-          
+ 
   /payments/accounts:
     post:
       description: Add new payment account to the requested user.
@@ -862,6 +848,24 @@ components:
         last_updated_at:
           type: string
 
+    OtpVerifiedResponse: 
+      type: object
+      properties:
+        karya-phone-token:
+          type: string
+        profiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Worker'
+
+    ProfileVerifiedResponse: 
+      type: object
+      properties:
+        karya-id-token:
+          type: string
+        profile:
+          $ref: '#/components/schemas/Worker'
+
     KaryaFile:
       type: object
       properties:
@@ -1040,6 +1044,8 @@ components:
           type: number
         total_earned:
           type: number
+
+
 
   securitySchemes:
     AccessCode:
